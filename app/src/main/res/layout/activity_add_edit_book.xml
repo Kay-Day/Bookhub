@@ -47,7 +47,7 @@
                     android:background="@drawable/edit_text_bg"
                     android:contentDescription="@string/book_cover"
                     android:scaleType="centerCrop"
-                    tools:src="@android:drawable/ic_menu_gallery" />
+                    tools:src="@drawable/ic_book" />
 
                 <Button
                     android:id="@+id/btn_choose_image"
@@ -113,27 +113,78 @@
                     android:layout_height="wrap_content"
                     android:gravity="top"
                     android:inputType="textMultiLine"
-                    android:lines="5" />
+                    android:minLines="4" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/contentInputLayout"
-                style="@style/EditText.App"
+            <!-- Phần nội dung sách và tải lên file -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:hint="@string/book_content">
+                android:orientation="vertical"
+                android:layout_marginBottom="16dp">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/content_edit_text"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="top"
-                    android:inputType="textMultiLine"
-                    android:lines="10" />
+                    android:text="@string/book_content"
+                    android:textSize="16sp"
+                    android:textColor="@color/text_primary"
+                    android:layout_marginBottom="8dp" />
 
-            </com.google.android.material.textfield.TextInputLayout>
+                <Button
+                    android:id="@+id/btn_upload_content"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="8dp"
+                    android:padding="12dp"
+                    android:background="@drawable/button_secondary"
+                    android:drawableStart="@android:drawable/ic_menu_upload"
+                    android:drawablePadding="8dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:gravity="start|center_vertical"
+                    android:text="@string/upload_txt_content"
+                    android:textColor="@color/primary" />
+
+                <FrameLayout
+                    android:id="@+id/selected_file_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/edit_text_bg"
+                    android:padding="8dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/selected_file_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:drawableStart="@android:drawable/ic_menu_agenda"
+                        android:drawablePadding="8dp"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="14sp"
+                        android:text="Tên file đã chọn" />
+
+                </FrameLayout>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/contentInputLayout"
+                    style="@style/EditText.App"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/content_edit_text"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="top"
+                        android:minLines="8"
+                        android:maxLines="12"
+                        android:inputType="textMultiLine" />
+
+                </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
 
         </LinearLayout>
 
@@ -145,7 +196,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="16dp"
-        android:src="@android:drawable/ic_menu_save"
+        android:src="@drawable/ic_save"
         android:tint="@color/background"
         app:backgroundTint="@color/primary" />
 

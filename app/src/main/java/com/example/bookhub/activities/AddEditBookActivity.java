@@ -1,25 +1,33 @@
 package com.example.bookhub.activities;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.content.FileProvider;
 
 import com.example.bookhub.R;
@@ -27,6 +35,7 @@ import com.example.bookhub.database.DatabaseHelper;
 import com.example.bookhub.models.Book;
 import com.example.bookhub.models.Category;
 import com.example.bookhub.utils.Constants;
+import com.example.bookhub.utils.FileUtils;
 import com.example.bookhub.utils.ImageUtils;
 import com.example.bookhub.utils.PreferenceManager;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -39,8 +48,12 @@ import java.util.List;
 
 public class AddEditBookActivity extends AppCompatActivity {
 
+    private static final String TAG = "AddEditBookActivity";
+
     private ImageView bookCover;
-    private Button btnChooseImage;
+    private Button btnChooseImage, btnUploadContent;
+    private TextView selectedFileName;
+    private FrameLayout selectedFileContainer;
     private TextInputEditText titleEditText, authorEditText, descriptionEditText, contentEditText;
     private Spinner categorySpinner;
     private FloatingActionButton fabSave;
@@ -54,6 +67,13 @@ public class AddEditBookActivity extends AppCompatActivity {
     private boolean isEditMode = false;
     private byte[] coverImageBytes;
     private Uri imageUri;
+    private Uri lastSelectedFileUri;
+
+    // Hằng số cho việc chọn file
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_PICK_IMAGE = 2;
+    private static final int REQUEST_PICK_TXT_FILE = 3;
+    private static final int PERMISSION_REQUEST_READ_EXTERNAL_STORAGE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,6 +92,9 @@ public class AddEditBookActivity extends AppCompatActivity {
         // Ánh xạ view
         bookCover = findViewById(R.id.book_cover);
         btnChooseImage = findViewById(R.id.btn_choose_image);
+        btnUploadContent = findViewById(R.id.btn_upload_content);
+        selectedFileName = findViewById(R.id.selected_file_name);
+        selectedFileContainer = findViewById(R.id.selected_file_container);
         titleEditText = findViewById(R.id.title_edit_text);
         authorEditText = findViewById(R.id.author_edit_text);
         descriptionEditText = findViewById(R.id.description_edit_text);
@@ -96,11 +119,17 @@ public class AddEditBookActivity extends AppCompatActivity {
             getSupportActionBar().setTitle(getString(R.string.add_book));
         }
 
+        // Thiết lập icon cho FAB lưu
+        fabSave.setImageResource(R.drawable.ic_save);
+
         // Thiết lập sự kiện click cho nút chọn ảnh
         btnChooseImage.setOnClickListener(v -> showImagePickerOptions());
 
-        // Thiết lập icon cho FAB lưu
-        fabSave.setImageResource(R.drawable.ic_save);
+        // Thiết lập sự kiện click cho nút tải lên nội dung từ file
+        btnUploadContent.setOnClickListener(v -> {
+            // Kiểm tra quyền trước khi chọn file
+            checkStoragePermissionAndPickTextFile();
+        });
 
         // Thiết lập sự kiện click cho nút lưu
         fabSave.setOnClickListener(v -> saveBook());
@@ -156,7 +185,6 @@ public class AddEditBookActivity extends AppCompatActivity {
             if (which == 0) {
                 // Chụp ảnh
                 captureImage();
-                btnChooseImage.setCompoundDrawablesWithIntrinsicBounds(R.drawable.ic_camera, 0, 0, 0);
             } else if (which == 1) {
                 // Chọn từ thư viện
                 pickImageFromGallery();
@@ -182,7 +210,7 @@ public class AddEditBookActivity extends AppCompatActivity {
 
                 // Gửi Uri đến camera app
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
-                startActivityForResult(takePictureIntent, Constants.REQUEST_IMAGE_CAPTURE);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -193,7 +221,44 @@ public class AddEditBookActivity extends AppCompatActivity {
 
     private void pickImageFromGallery() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-        startActivityForResult(intent, Constants.REQUEST_PICK_IMAGE);
+        startActivityForResult(intent, REQUEST_PICK_IMAGE);
+    }
+
+    /**
+     * Kiểm tra quyền đọc bộ nhớ ngoài trước khi chọn file
+     */
+    private void checkStoragePermissionAndPickTextFile() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                // Nếu chưa có quyền, yêu cầu quyền
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},
+                        PERMISSION_REQUEST_READ_EXTERNAL_STORAGE);
+            } else {
+                // Đã có quyền, mở file picker
+                pickTextFile();
+            }
+        } else {
+            // Android dưới 6.0 không cần runtime permission
+            pickTextFile();
+        }
+    }
+
+    /**
+     * Phương thức để mở file picker và chọn file TXT
+     */
+    private void pickTextFile() {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("text/plain");
+
+        try {
+            startActivityForResult(intent, REQUEST_PICK_TXT_FILE);
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening file picker", e);
+            Toast.makeText(this, "Không thể mở trình chọn file", Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void saveBook() {
@@ -244,6 +309,7 @@ public class AddEditBookActivity extends AppCompatActivity {
 
             if (result > 0) {
                 // Cập nhật thành công
+                Toast.makeText(this, getString(R.string.book_updated), Toast.LENGTH_SHORT).show();
                 setResult(RESULT_OK);
                 finish();
             } else {
@@ -260,6 +326,7 @@ public class AddEditBookActivity extends AppCompatActivity {
 
             if (bookId != -1) {
                 // Thêm thành công
+                Toast.makeText(this, getString(R.string.book_added), Toast.LENGTH_SHORT).show();
                 setResult(RESULT_OK);
                 finish();
             } else {
@@ -271,22 +338,36 @@ public class AddEditBookActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == PERMISSION_REQUEST_READ_EXTERNAL_STORAGE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Quyền được cấp, mở file picker
+                pickTextFile();
+            } else {
+                // Quyền bị từ chối
+                Toast.makeText(this, "Cần quyền đọc bộ nhớ để chọn file", Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
         if (resultCode == RESULT_OK) {
-            if (requestCode == Constants.REQUEST_IMAGE_CAPTURE) {
+            if (requestCode == REQUEST_IMAGE_CAPTURE) {
                 // Xử lý ảnh từ camera
                 if (imageUri != null) {
                     try {
                         coverImageBytes = ImageUtils.convertImageToByteArray(this, imageUri);
                         displaySelectedImage();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Error processing camera image", e);
                         Toast.makeText(this, "Lỗi xử lý ảnh", Toast.LENGTH_SHORT).show();
                     }
                 }
-            } else if (requestCode == Constants.REQUEST_PICK_IMAGE) {
+            } else if (requestCode == REQUEST_PICK_IMAGE) {
                 // Xử lý ảnh từ thư viện
                 if (data != null && data.getData() != null) {
                     imageUri = data.getData();
@@ -294,8 +375,74 @@ public class AddEditBookActivity extends AppCompatActivity {
                         coverImageBytes = ImageUtils.convertImageToByteArray(this, imageUri);
                         displaySelectedImage();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Error processing gallery image", e);
                         Toast.makeText(this, "Lỗi xử lý ảnh", Toast.LENGTH_SHORT).show();
+                    }
+                }
+            } else if (requestCode == REQUEST_PICK_TXT_FILE && data != null) {
+                // Xử lý file TXT được chọn
+                Uri fileUri = data.getData();
+                if (fileUri != null) {
+                    Log.d(TAG, "Selected file URI: " + fileUri.toString());
+
+                    // Lưu URI cuối cùng được chọn
+                    lastSelectedFileUri = fileUri;
+
+                    // Lấy quyền đọc liên tục cho URI
+                    try {
+                        final int takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION;
+                        getContentResolver().takePersistableUriPermission(fileUri, takeFlags);
+                    } catch (SecurityException e) {
+                        Log.w(TAG, "Failed to take persistable URI permission", e);
+                        // Vẫn tiếp tục xử lý, có thể không cần quyền liên tục
+                    }
+
+                    try {
+                        // Hiển thị ProgressBar
+                        progressBar.setVisibility(View.VISIBLE);
+
+                        // Đọc nội dung file
+                        String content = FileUtils.readTextFromUri(this, fileUri);
+
+                        // Điền nội dung vào EditText
+                        contentEditText.setText(content);
+                        contentEditText.setSelection(0); // Di chuyển con trỏ về đầu
+                        Log.d(TAG, "Content loaded, length: " + content.length());
+
+                        // Lấy tên file và hiển thị
+                        String fileName = FileUtils.getFileName(this, fileUri);
+                        if (fileName != null) {
+                            // Hiển thị thông tin về file
+                            String fileInfo = fileName;
+                            // Thêm thông tin về kích thước file (nếu có thể)
+                            try {
+                                float kb = content.length() / 1024f;
+                                fileInfo += " (" + String.format("%.1f KB", kb) + ")";
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error calculating file size", e);
+                            }
+
+                            selectedFileName.setText(fileInfo);
+                            selectedFileContainer.setVisibility(View.VISIBLE);
+
+                            // Tự động điền tiêu đề nếu chưa có
+                            if (TextUtils.isEmpty(titleEditText.getText()) && fileName.endsWith(".txt")) {
+                                String title = fileName.substring(0, fileName.length() - 4);
+                                titleEditText.setText(title);
+                                Log.d(TAG, "Filename extracted: " + title);
+                            }
+                        }
+
+                        // Ẩn ProgressBar
+                        progressBar.setVisibility(View.GONE);
+
+                        // Hiển thị thông báo thành công
+                        Toast.makeText(this, getString(R.string.content_loaded), Toast.LENGTH_SHORT).show();
+                    } catch (IOException e) {
+                        // Xử lý lỗi đọc file
+                        Log.e(TAG, "Error reading text file", e);
+                        progressBar.setVisibility(View.GONE);
+                        Toast.makeText(this, getString(R.string.error_reading_file), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
@@ -321,8 +468,22 @@ public class AddEditBookActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
-        // Animation khi quay lại
-        overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
+        // Nếu đã chọn file và nhập nội dung, hỏi người dùng có muốn lưu không
+        if (lastSelectedFileUri != null && !TextUtils.isEmpty(contentEditText.getText())) {
+            androidx.appcompat.app.AlertDialog.Builder builder = new androidx.appcompat.app.AlertDialog.Builder(this);
+            builder.setTitle("Lưu thay đổi?");
+            builder.setMessage("Bạn đã tải lên nội dung từ file. Bạn có muốn lưu thay đổi không?");
+            builder.setPositiveButton("Lưu", (dialog, which) -> saveBook());
+            builder.setNegativeButton("Hủy", (dialog, which) -> {
+                dialog.dismiss();
+                finish();
+                overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
+            });
+            builder.show();
+        } else {
+            super.onBackPressed();
+            // Animation khi quay lại
+            overridePendingTransition(R.anim.slide_out_left, R.anim.slide_in_right);
+        }
     }
 }

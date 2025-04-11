@@ -65,4 +65,18 @@
     <string name="error_adding_book">Không thể thêm sách</string>
     <string name="error_updating_book">Không thể cập nhật sách</string>
     <string name="error_deleting_book">Không thể xóa sách</string>
+
+<!--    <string name="upload_txt_content">Tải lên nội dung từ file TXT</string>-->
+<!--    <string name="select_txt_file">Chọn file TXT</string>-->
+<!--    <string name="error_reading_file">Lỗi đọc file</string>-->
+<!--    <string name="content_loaded">Đã tải nội dung từ file thành công</string>-->
+<!--    <string name="book_cover">Ảnh bìa sách</string>-->
+    <string name="upload_txt_content">Tải lên nội dung từ file TXT</string>
+    <string name="selected_file">File đã chọn: %s</string>
+    <string name="select_txt_file">Chọn file TXT</string>
+    <string name="error_reading_file">Lỗi đọc file. Vui lòng thử lại.</string>
+    <string name="content_loaded">Đã tải nội dung từ file thành công</string>
+<!--    <string name="book_cover">Ảnh bìa sách</string>-->
+    <string name="file_size_kb">Kích thước: %1$.1f KB</string>
+<!--    <string name="characters_count">Số ký tự: %d</string>-->
 </resources>

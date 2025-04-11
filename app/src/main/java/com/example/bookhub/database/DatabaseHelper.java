@@ -1,5 +1,6 @@
 package com.example.bookhub.database;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -172,6 +173,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return user;
     }
 
+    @SuppressLint("Range")
     public User getUserById(int id) {
         SQLiteDatabase db = getReadableDatabase();
         User user = null;
