@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Book App</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Hủy</string>
+    <string name="save">Lưu</string>
+    <string name="delete">Xóa</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="loading">Đang tải...</string>
+    <string name="error">Lỗi</string>
+    <string name="success">Thành công</string>
+
+    <!-- Login and Register -->
+    <string name="login">Đăng nhập</string>
+    <string name="register">Đăng ký</string>
+    <string name="logout">Đăng xuất</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="confirm_password">Xác nhận mật khẩu</string>
+    <string name="username">Tên người dùng</string>
+    <string name="forgot_password">Quên mật khẩu?</string>
+    <string name="no_account">Chưa có tài khoản? Đăng ký ngay</string>
+    <string name="has_account">Đã có tài khoản? Đăng nhập</string>
+    <string name="login_success">Đăng nhập thành công</string>
+    <string name="register_success">Đăng ký thành công</string>
+    <string name="logout_success">Đăng xuất thành công</string>
+
+    <!-- Books -->
+    <string name="books">Sách</string>
+    <string name="book_detail">Chi tiết sách</string>
+    <string name="read_book">Đọc sách</string>
+    <string name="book_title">Tiêu đề sách</string>
+    <string name="book_author">Tác giả</string>
+    <string name="book_category">Thể loại</string>
+    <string name="book_description">Mô tả</string>
+    <string name="book_content">Nội dung sách</string>
+    <string name="add_book">Thêm sách</string>
+    <string name="edit_book">Chỉnh sửa sách</string>
+    <string name="delete_book">Xóa sách</string>
+    <string name="delete_book_confirm">Bạn có chắc chắn muốn xóa sách này?</string>
+    <string name="book_added">Thêm sách thành công</string>
+    <string name="book_updated">Cập nhật sách thành công</string>
+    <string name="book_deleted">Xóa sách thành công</string>
+    <string name="choose_image">Chọn ảnh bìa</string>
+    <string name="no_books_found">Không tìm thấy sách nào</string>
+    <string name="book_cover">Ảnh bìa sách</string>
+
+    <!-- Navigation -->
+    <string name="home">Trang chủ</string>
+    <string name="categories">Thể loại</string>
+    <string name="favorites">Yêu thích</string>
+    <string name="profile">Hồ sơ</string>
+    <string name="settings">Cài đặt</string>
+
+    <!-- Errors -->
+    <string name="error_login">Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.</string>
+    <string name="error_register">Đăng ký thất bại. Vui lòng thử lại.</string>
+    <string name="error_password_match">Mật khẩu không khớp</string>
+    <string name="error_empty_fields">Vui lòng điền đầy đủ thông tin</string>
+    <string name="error_loading_books">Không thể tải danh sách sách</string>
+    <string name="error_loading_book">Không thể tải thông tin sách</string>
+    <string name="error_adding_book">Không thể thêm sách</string>
+    <string name="error_updating_book">Không thể cập nhật sách</string>
+    <string name="error_deleting_book">Không thể xóa sách</string>
+</resources>
